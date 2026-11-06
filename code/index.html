@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reverse Convertible Calculator</title>
+</head>
+<body>
+    <h1>Reverse Convertible Calculator</h1>
+
+    <p>Enter rates as decimals: 0.12 = 12%. Enter time in years.</p>
+    <p>Defaults use the workbook's 2 November 2026 assumptions, not live market data.</p>
+
+    <form method="post" action="/">
+
+        <fieldset>
+            <legend>Product</legend>
+
+            <p>
+                <label>Calculation
+                    <select name="mode">
+                        <option value="solve" {% if request.form.get('mode', 'solve') == 'solve' %}selected{% endif %}>Solve coupon for target margin</option>
+                        <option value="value" {% if request.form.get('mode') == 'value' %}selected{% endif %}>Value a fixed coupon</option>
+                    </select>
+                </label>
+            </p>
+
+            <p><label>Nominal <input type="number" step="any" name="nominal" value="{{ request.form.get('nominal', '1000') }}" required></label></p>
+            <p><label>Strike price <input type="number" step="any" name="strike" value="{{ request.form.get('strike', '303.13') }}" required></label></p>
+            <p><label>Remaining maturity in years <input type="number" step="any" name="maturity" value="{{ request.form.get('maturity', '1') }}" required></label></p>
+            <p><label>Annual coupon rate — fixed-coupon mode only <input type="number" step="any" name="coupon_rate" value="{{ request.form.get('coupon_rate', '0.1175531634888307') }}"></label></p>
+            <p><label>Coupon accrual years — blank uses remaining maturity <input type="number" step="any" name="coupon_accrual_years" value="{{ request.form.get('coupon_accrual_years', '') }}"></label></p>
+        </fieldset>
+
+        <fieldset>
+            <legend>Barrier</legend>
+
+            <p>
+                <label>Barrier?
+                    <select name="barrier_enabled">
+                        <option value="yes" {% if request.form.get('barrier_enabled', 'yes') == 'yes' %}selected{% endif %}>Yes</option>
+                        <option value="no" {% if request.form.get('barrier_enabled') == 'no' %}selected{% endif %}>No — plain reverse convertible</option>
+                    </select>
+                </label>
+            </p>
+
+            <p><label>Barrier fraction — 0.75 = 75% <input type="number" step="any" name="barrier" value="{{ request.form.get('barrier', '0.75') }}"></label></p>
+            <p><label>Original reference spot — blank uses current spot <input type="number" step="any" name="reference_spot" value="{{ request.form.get('reference_spot', '') }}"></label></p>
+
+            <p>
+                <label>Has the barrier already been breached?
+                    <select name="barrier_breached">
+                        <option value="no" {% if request.form.get('barrier_breached', 'no') == 'no' %}selected{% endif %}>No</option>
+                        <option value="yes" {% if request.form.get('barrier_breached') == 'yes' %}selected{% endif %}>Yes</option>
+                    </select>
+                </label>
+            </p>
+
+            <p>For later valuations of an issued product, enter its original reference spot so the barrier stays fixed.</p>
+        </fieldset>
+
+        <fieldset>
+            <legend>Market inputs</legend>
+
+            <p><label>Current underlying price <input type="number" step="any" name="spot" value="{{ request.form.get('spot', '303.13') }}" required></label></p>
+            <p><label>Risk-free rate — continuous <input type="number" step="any" name="risk_free_rate" value="{{ request.form.get('risk_free_rate', '0.04416') }}" required></label></p>
+            <p><label>Dividend yield — continuous <input type="number" step="any" name="dividend_yield" value="{{ request.form.get('dividend_yield', '0.0373') }}" required></label></p>
+            <p><label>Bond discount rate — effective annual <input type="number" step="any" name="bond_discount_rate" value="{{ request.form.get('bond_discount_rate', '0.048899') }}" required></label></p>
+
+            <p>The default bond discount rate uses the workbook's approximation: risk-free rate + CDS spread.</p>
+
+            <p>
+                <label>Volatility source
+                    <select name="volatility_mode">
+                        <option value="calibrate" {% if request.form.get('volatility_mode', 'calibrate') == 'calibrate' %}selected{% endif %}>Calibrate from a market call price</option>
+                        <option value="direct" {% if request.form.get('volatility_mode') == 'direct' %}selected{% endif %}>Enter volatility directly</option>
+                    </select>
+                </label>
+            </p>
+
+            <p><label>Annual volatility — direct mode only <input type="number" step="any" name="volatility" value="{{ request.form.get('volatility', '0.275380258142232') }}"></label></p>
+            <p><label>Market call price — calibration only <input type="number" step="any" name="call_price" value="{{ request.form.get('call_price', '32.25') }}"></label></p>
+            <p><label>Market call strike — calibration only <input type="number" step="any" name="call_strike" value="{{ request.form.get('call_strike', '300') }}"></label></p>
+            <p><label>Market call maturity in years — calibration only <input type="number" step="any" name="call_maturity" value="{{ request.form.get('call_maturity', '0.873972602739726') }}"></label></p>
+        </fieldset>
+
+        <fieldset>
+            <legend>Issuance</legend>
+
+            <p><label>Issue price / nominal — 1 = 100% <input type="number" step="any" name="issue_price_fraction" value="{{ request.form.get('issue_price_fraction', '1') }}" required></label></p>
+            <p><label>Upfront margin / nominal — solve-coupon mode only <input type="number" step="any" name="margin" value="{{ request.form.get('margin', '0.015') }}"></label></p>
+        </fieldset>
+
+        <p><button type="submit">Calculate</button></p>
+    </form>
+
+    <h2>Calculation JSON</h2>
+    <pre>{{ result if result is not none else 'Enter inputs and click Calculate.' }}</pre>
+
+    <p>Fair value = principal PV + coupon PV − embedded put value.</p>
+    <p>Embedded put value = (nominal / strike) × put price per share.</p>
+    <p><b>Assumptions:</b> continuous barrier monitoring, one coupon paid at maturity, constant volatility and dividend yield, <br>
+        and simplified credit discounting. Barrier price must not exceed strike.</p>
+  <p><b>Model assumptions:</b> one underlying, one currency, one unconditional coupon payment at maturity, <br>
+    continuous barrier monitoring, zero rebate, constant volatility and dividend yield. <br>
+    Credit is approximated through the bond discount rate. Supported barrier price must not exceed strike.</p>
+</body>
+</html>
