@@ -1,6 +1,8 @@
-<img width="360" height="121" alt="image" src="https://github.com/user-attachments/assets/20f8a82a-41d2-4c29-a90a-55da1aa3f21f" /><br>
+<img width="360" height="121" alt="image" src="https://github.com/user-attachments/assets/20f8a82a-41d2-4c29-a90a-55da1aa3f21f" /> &nbsp;&nbsp;&nbsp;&nbsp;
+<img width="312" height="121" alt="J P  Margin-Logo" src="https://github.com/user-attachments/assets/eeb79cc3-2ead-473d-ac68-076841b48460" />
+<br>
 **ATTENTION:** This product is not financial advice or any form of an investment suggestion. 
-It was created as part of the Structured Products Seminar at the University of Zurich and is purely for educational purposes.
+It was created as part of the Structured Products Seminar at the University of Zurich and is purely for educational purposes. The name is a joke and has no affiliations.
 
 # Reverse Convertible Pricing Engine
 
